@@ -1,0 +1,136 @@
+---
+title: "Statsbomb Data Practice"
+author: "Kevin Egan"
+date: "09/04/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load Packages
+
+```{r, packages}
+library(tidyverse)
+library(devtools)
+```
+
+# Pull Data from Soccerway
+
+```{r, scape}
+### grab url
+page <- "https://uk.soccerway.com/national/england/premier-league/20202021/regular-season/r59136/"
+scraped_page <- read_html(page)
+### Extract data using html nodes function. This link is from inspecting the webpage on soccerway
+teams <- scraped_page %>% 
+  html_nodes(paste("#page_competition_1_block_competition_tables",
+                   "_11_block_competition_league_table_1_table .large-link", sep = "")) %>%
+  html_text() %>%
+  as.character()
+teams <- gsub("\n", "", teams)
+### Trim white space
+teams <- trimws(teams)
+### Update a few names
+teams[14] <- "Wolverhampton Wanderers"
+teams[16] <- "Brighton & Hove Albion"
+teams[19] <- "West Bromwich Albion"
+### Scrape League Name
+league <- scraped_page %>%
+  html_node("h1") %>%
+  html_text() %>%
+  as.character()
+### Goals For
+goals_for <- scraped_page %>%
+  html_nodes(".team_rank .total_gf") %>%
+  html_text() %>%
+  as.numeric()
+### Goals Against
+goals_against <- scraped_page %>%
+  html_nodes(".team_rank .total_ga") %>%
+  html_text() %>%
+  as.numeric()
+teams_gfor_ga_df <- data.frame(teams, goals_for, goals_against)
+```
+
+### Generate Plot of Data
+
+```{r, plotting goals for vs goals against}
+require(ggrepel)
+### description of quality
+annotations <- data.frame(
+   xpos = c(-Inf,Inf),
+   ypos =  c(Inf,-Inf),
+   annotateText = c("Poor Attack, Poor Defense","Strong Attack, Strong Defense"),
+   hjustvar = c(0,1) ,
+   vjustvar = c(1,0))
+### ggplot
+ggplot(data = teams_gfor_ga_df, aes(x = goals_for, y = goals_against,
+                                    label = teams)) +
+  theme(legend.position = "none",
+        axis.line = element_line(colour = "black"),
+        panel.background = element_blank()) +
+    geom_vline(xintercept = mean(goals_for), linetype = "dashed", alpha = 0.4,
+             colour = "red") +
+  geom_hline(yintercept = mean(goals_against), linetype = "dashed",
+             alpha = 0.4, colour = "red") +
+  geom_text_repel(size = 3, aes(goals_for, goals_against, label = teams)) +
+  # geom_text(size = 2.5, nudge_y = -0.5) +
+  geom_point() +
+  labs(title = "Goals For vs. Goals Against: Premier League 2020/2021",
+       x = "Goals For",
+       y = "Goals Against")
+```
+
+# Pull Data from FbRef
+
+```{r, scape}
+library(stringi)
+library(jsonlite)
+library(rvest)
+
+# epl_2020 <- get_league_teams_stats("EPL", 2020)
+### grab url
+xg_page <- "https://widgets.sports-reference.com/wg.fcgi?css=1&site=fb&url=%2Fen%2Fcomps%2F9%2FPremier-League-Stats&div=div_results107281_overall"
+xg_df <- xg_page %>%
+  xml2::read_html() %>%
+  rvest::html_nodes('table') %>%
+  html_table() %>%
+  .[[1]]
+xG <- xg_df$xG
+xGA <- xg_df$xGA
+teams <- xg_df$Squad
+teams_xg_xga <- data.frame(teams = teams,
+             xG = xG,
+             xGA = xGA)
+```
+
+### Generate Plot of Data
+
+```{r, plotting goals for vs goals against}
+require(ggrepel)
+### description of quality
+annotations <- data.frame(
+   xpos = c(-Inf,Inf),
+   ypos =  c(Inf,-Inf),
+   annotateText = c("Poor Attack, Poor Defense","Strong Attack, Strong Defense"),
+   hjustvar = c(0,1) ,
+   vjustvar = c(1,0))
+### ggplot
+ggplot(data = teams_xg_xga, aes(x = xG, y = xGA,
+                                    label = teams)) +
+  geom_point() +
+  theme(legend.position = "none",
+        axis.line = element_line(colour = "black"),
+        panel.background = element_blank()) +
+  geom_vline(xintercept = mean(xG), linetype = "dashed", alpha = 0.4,
+             colour = "red") +
+  geom_hline(yintercept = mean(xGA), linetype = "dashed",
+             alpha = 0.4, colour = "red") +
+  geom_text_repel(size = 3, aes(xG, xGA, label = teams)) +
+  # geom_text(size = 2.5, nudge_y = -0.5) +
+  geom_point() +
+  labs(title = "xG vs. xGA: Premier League 2020/2021",
+       x = "Expected Goals For",
+       y = "Expected Goals Against")
+```
