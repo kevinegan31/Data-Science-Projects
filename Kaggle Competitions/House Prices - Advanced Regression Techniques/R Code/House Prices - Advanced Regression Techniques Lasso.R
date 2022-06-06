@@ -1,5 +1,3 @@
-### Original code comes from https://www.kaggle.com/aniruddhachakraborty/lasso-gbm-xgboost-top-20-0-12039-using-r
-### However, I have changed non-tidy methods to tidy and will update regression methods.
 library(tidyverse)
 library(data.table)
 library(ggplot2)
@@ -209,7 +207,6 @@ colnames(x)[2] <- "SalePrice"
 write.csv(x, row.names = F, file = "./submission_alasso.csv")
 ##############################################################################
 ######################### Kaggle Model #######################################
-######## Overall, I am happy with my adaptive lasso automatic model. #########
 ##############################################################################
 
 set.seed(123)
