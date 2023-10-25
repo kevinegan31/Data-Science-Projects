@@ -145,7 +145,7 @@ framingham['education'].fillna(mode_value, inplace=True)
 print(framingham['education'].isnull().sum())  # Should print 0 if all missing values are filled
 plt.figure(figsize=(10, 6))
 sns.histplot(framingham['education'], kde=True)
-plt.title(f'Distribution of Education')
+plt.title('Distribution of Education')
 plt.xlabel('Education')
 plt.ylabel('Count')
 plt.show()
@@ -160,7 +160,33 @@ sns.histplot(smokers_data['cigsPerDay'], bins=30, kde=True)
 plt.xlabel('Cigarettes per Day')
 plt.ylabel('Frequency')
 plt.title('Distribution of Cigarettes per Day for Current Smokers')
+
+# Specify the file path for the PDF file
+pdf_file_path = '/Users/kevinegan/Downloads/test_figure.pdf'
+
+# Save the figure as a PDF
+plt.savefig(pdf_file_path, format='pdf')
+
+# Show the plot (optional)
 plt.show()
+
+
+# Plot the histogram
+sns.histplot(smokers_data['cigsPerDay'], bins=30, kde=True)
+plt.xlabel('Cigarettes per Day')
+plt.ylabel('Frequency')
+plt.title('Distribution of Cigarettes per Day for Current Smokers')
+
+# Specify the file path for the PDF file
+pdf_file_path = '/Users/kevinegan/Downloads/test_figure.pdf'
+
+# Save the figure as a PDF
+plt.savefig(pdf_file_path, format='pdf')
+
+# Show the plot (optional)
+plt.show()
+
+
 
 # For currentSmokers = 0, fill NA with 0
 framingham.loc[framingham['currentSmoker'] == 0, 'cigsPerDay'] = framingham.loc[framingham['currentSmoker'] == 0, 'cigsPerDay'].fillna(0)
